@@ -702,7 +702,7 @@ export function ChatApp({ currentUser }: ChatAppProps) {
   const activeTyping = activeConvId ? typingByConv[activeConvId] || [] : [];
 
   return (
-    <div className="h-screen w-full flex bg-white dark:bg-zinc-950 overflow-hidden">
+    <div className="h-[100dvh] w-full flex bg-white dark:bg-zinc-950 overflow-hidden">
       {/* Left Sidebar */}
       <aside
         className={`${
@@ -969,7 +969,7 @@ export function ChatApp({ currentUser }: ChatAppProps) {
                     )}
 
                     <div
-                      className={`flex items-end gap-2 max-w-[82%] sm:max-w-[70%] ${
+                      className={`flex items-end gap-2 max-w-[88%] sm:max-w-[75%] md:max-w-[68%] ${
                         isOwn ? "flex-row-reverse" : "flex-row"
                       }`}
                     >
@@ -981,11 +981,13 @@ export function ChatApp({ currentUser }: ChatAppProps) {
                         />
                       )}
 
-                      <div className="relative">
-                        {/* Hover actions */}
+                      <div className="relative min-w-0">
+                        {/* Hover / touch actions */}
                         <div
-                          className={`opacity-0 group-hover:opacity-100 transition flex items-center gap-1 absolute top-1/2 -translate-y-1/2 z-10 ${
-                            isOwn ? "-left-16" : "-right-16"
+                          className={`opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition flex items-center gap-1 mt-1 sm:mt-0 sm:absolute sm:top-1/2 sm:-translate-y-1/2 z-10 ${
+                            isOwn
+                              ? "justify-end sm:-left-16"
+                              : "justify-start sm:-right-16"
                           }`}
                         >
                           <button
@@ -1078,16 +1080,16 @@ export function ChatApp({ currentUser }: ChatAppProps) {
                               src={msg.mediaUrl}
                               alt={msg.fileName || "Image"}
                               onClick={() => setLightboxUrl(msg.mediaUrl!)}
-                              className="max-w-[260px] max-h-[260px] rounded-xl object-cover cursor-pointer hover:opacity-95"
+                              className="max-w-full sm:max-w-[260px] max-h-[260px] rounded-xl object-cover cursor-pointer hover:opacity-95"
                             />
                           )}
 
                           {msg.type === "audio" && msg.mediaUrl && (
-                            <div className="flex flex-col gap-1 min-w-[210px]">
+                            <div className="flex flex-col gap-1 min-w-[180px] sm:min-w-[210px]">
                               <audio
                                 controls
                                 src={msg.mediaUrl}
-                                className="h-8 w-full max-w-[240px]"
+                                className="h-8 w-[190px] sm:w-[240px] max-w-full"
                               />
                               {msg.audioDuration !== undefined && (
                                 <span
@@ -1228,7 +1230,7 @@ export function ChatApp({ currentUser }: ChatAppProps) {
             )}
 
             {/* Composer */}
-            <div className="px-3 py-3 border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center gap-2">
+            <div className="px-2 sm:px-3 py-2.5 sm:py-3 border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center gap-1 sm:gap-2">
               <input
                 ref={imageInputRef}
                 type="file"
@@ -1319,7 +1321,7 @@ export function ChatApp({ currentUser }: ChatAppProps) {
                     placeholder={
                       uploading ? "Uploading attachment..." : "Aa"
                     }
-                    className="flex-1 px-4 py-2 rounded-full bg-slate-100 dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#0084FF]"
+                    className="min-w-0 flex-1 px-3.5 sm:px-4 py-2 rounded-full bg-slate-100 dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#0084FF]"
                   />
 
                   {textInput.trim() ? (

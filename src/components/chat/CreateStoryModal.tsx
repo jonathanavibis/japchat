@@ -74,7 +74,7 @@ export function CreateStoryModal({ onClose, onCreate }: CreateStoryModalProps) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden"
+        className="w-full max-w-md max-h-[92dvh] overflow-y-auto bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-zinc-800"
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-zinc-800">
           <div className="flex items-center gap-2">

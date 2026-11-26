@@ -56,7 +56,7 @@ export function StoryViewerModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-sm h-[82vh] max-h-[680px] rounded-3xl overflow-hidden bg-zinc-900 shadow-2xl flex flex-col"
+        className="relative w-full max-w-sm h-[88dvh] sm:h-[82vh] max-h-[680px] rounded-3xl overflow-hidden bg-zinc-900 shadow-2xl flex flex-col"
       >
         {/* Progress bars */}
         <div className="absolute top-3 left-3 right-3 z-20 flex gap-1.5">

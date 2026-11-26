@@ -36,7 +36,7 @@ export function NewGroupModal({ users, onClose, onCreate }: NewGroupModalProps) 
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-md max-h-[92dvh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-zinc-800">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-full bg-[#0084FF]/10 text-[#0084FF] flex items-center justify-center">

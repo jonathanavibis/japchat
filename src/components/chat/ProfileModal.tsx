@@ -93,7 +93,7 @@ export function ProfileModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden"
+        className="w-full max-w-md max-h-[92dvh] flex flex-col bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden"
       >
         {/* Telegram-style Top Banner */}
         <div className="relative h-28 bg-gradient-to-r from-[#0084FF] via-[#5B5DFF] to-[#A033FF]">
