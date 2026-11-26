@@ -41,8 +41,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/");
-      router.refresh();
+      window.location.assign("/");
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
