@@ -12,13 +12,13 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file");
-    if (!file || !(file instanceof File)) {
+    if (!file || typeof file === "string" || !("arrayBuffer" in file)) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
     if (file.size > 4.5 * 1024 * 1024) {
       return NextResponse.json(
-        { error: "File too large (max 4.5MB on serverless)" },
+        { error: "File too large (max 4.5MB)" },
         { status: 413 }
       );
     }
@@ -27,11 +27,12 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const mime = file.type || "application/octet-stream";
+    const fileName = "name" in file && typeof file.name === "string" ? file.name : "attachment";
 
     const doc = await Media.create({
       data: buffer,
       contentType: mime,
-      fileName: file.name || "attachment",
+      fileName,
       fileSize: file.size,
       uploadedBy: session.user.id,
     });

@@ -45,11 +45,13 @@ export function ProfileModal({
   const [bio, setBio] = useState(user.bio || "Hey there! I am using JapChat.");
   const [image, setImage] = useState<string | null>(user.image || null);
   const [uploadingPic, setUploadingPic] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState(false);
 
   async function handleAvatarChange(file: File) {
     setUploadingPic(true);
+    setUploadError("");
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -61,7 +63,12 @@ export function ProfileModal({
         const data = await res.json();
         setImage(data.url);
         await onUpdateProfile({ name: name.trim() || user.name, bio, image: data.url });
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setUploadError(err.error || "Failed to upload image (max 4.5MB)");
       }
+    } catch {
+      setUploadError("Failed to upload image");
     } finally {
       setUploadingPic(false);
     }
@@ -141,6 +148,9 @@ export function ProfileModal({
         <div className="pt-13 px-6 pb-3 border-b border-slate-100 dark:border-zinc-800">
           <h2 className="font-bold text-lg leading-tight">{name || user.name}</h2>
           <p className="text-xs text-slate-500 dark:text-zinc-400">{user.email}</p>
+          {uploadError && (
+            <p className="text-xs text-red-500 mt-1">{uploadError}</p>
+          )}
 
           <div className="flex gap-2 mt-4">
             <button

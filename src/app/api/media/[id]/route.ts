@@ -9,17 +9,21 @@ export async function GET(
   try {
     const { id } = await context.params;
     await connectMongoose();
-    const doc = await Media.findById(id).lean();
-    if (!doc) {
+    const doc = await Media.findById(id);
+    if (!doc || !doc.data) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const bytes = new Uint8Array(doc.data as unknown as ArrayBuffer);
-    return new NextResponse(bytes, {
+    const buf = Buffer.isBuffer(doc.data)
+      ? doc.data
+      : Buffer.from(doc.data as unknown as ArrayBuffer);
+
+    return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {
         "Content-Type": doc.contentType || "application/octet-stream",
-        "Content-Disposition": `inline; filename="${encodeURIComponent(doc.fileName)}"`,
+        "Content-Length": String(buf.byteLength),
+        "Content-Disposition": `inline; filename="${encodeURIComponent(doc.fileName || "file")}"`,
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
