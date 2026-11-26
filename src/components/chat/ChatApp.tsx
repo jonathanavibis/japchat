@@ -386,6 +386,18 @@ export function ChatApp({ currentUser }: ChatAppProps) {
     };
   }, [currentUser.id, activeConvId, fetchConversations]);
 
+  // Serverless polling fallback when Socket.io is not connected (e.g. on Vercel)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (socketRef.current?.connected) return;
+      fetchConversations();
+      if (activeConvId) {
+        fetchMessages(activeConvId);
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [activeConvId, fetchConversations, fetchMessages]);
+
   // Select a conversation
   const openConversation = useCallback(
     async (convId: string) => {
@@ -394,7 +406,11 @@ export function ChatApp({ currentUser }: ChatAppProps) {
       setActiveReactionMsgId(null);
       socketRef.current?.emit("conversation:join", { conversationId: convId });
       await fetchMessages(convId);
-      socketRef.current?.emit("message:seen", { conversationId: convId });
+      if (socketRef.current?.connected) {
+        socketRef.current.emit("message:seen", { conversationId: convId });
+      } else {
+        fetch(`/api/conversations/${convId}/seen`, { method: "POST" });
+      }
       setConversations((prev) =>
         prev.map((c) => (c._id === convId ? { ...c, unreadCount: 0 } : c))
       );
@@ -441,12 +457,44 @@ export function ChatApp({ currentUser }: ChatAppProps) {
     }
   }
 
+  // Unified send helper (Socket.io when connected, REST fallback on serverless)
+  async function dispatchMessage(payload: {
+    conversationId: string;
+    type: "text" | "image" | "file" | "audio";
+    text?: string;
+    mediaUrl?: string;
+    fileName?: string;
+    fileSize?: number;
+    audioDuration?: number;
+    replyTo?: ReplyPreview;
+  }) {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("message:send", payload);
+      return;
+    }
+    const res = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const msg: ChatMessage = data.message;
+      setMessagesByConv((prev) => {
+        const list = prev[msg.conversationId] || [];
+        if (list.some((m) => m._id === msg._id)) return prev;
+        return { ...prev, [msg.conversationId]: [...list, msg] };
+      });
+      fetchConversations();
+    }
+  }
+
   // Send text message
   function sendTextMessage(customText?: string) {
     const text = (customText ?? textInput).trim();
-    if (!text || !activeConvId || !socketRef.current) return;
+    if (!text || !activeConvId) return;
 
-    socketRef.current.emit("message:send", {
+    dispatchMessage({
       conversationId: activeConvId,
       type: "text",
       text,
@@ -455,13 +503,13 @@ export function ChatApp({ currentUser }: ChatAppProps) {
 
     if (!customText) setTextInput("");
     setReplyTo(null);
-    socketRef.current.emit("typing:stop", { conversationId: activeConvId });
+    socketRef.current?.emit("typing:stop", { conversationId: activeConvId });
   }
 
   // Handle typing
   function handleInputChange(value: string) {
     setTextInput(value);
-    if (!activeConvId || !socketRef.current) return;
+    if (!activeConvId || !socketRef.current?.connected) return;
 
     socketRef.current.emit("typing:start", { conversationId: activeConvId });
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -472,7 +520,7 @@ export function ChatApp({ currentUser }: ChatAppProps) {
 
   // Upload image or file
   async function handleFileUpload(file: File) {
-    if (!activeConvId || !socketRef.current) return;
+    if (!activeConvId) return;
     setUploading(true);
     try {
       const formData = new FormData();
@@ -485,7 +533,7 @@ export function ChatApp({ currentUser }: ChatAppProps) {
 
       if (res.ok) {
         const data = await res.json();
-        socketRef.current.emit("message:send", {
+        await dispatchMessage({
           conversationId: activeConvId,
           type: data.kind,
           mediaUrl: data.url,
@@ -556,7 +604,7 @@ export function ChatApp({ currentUser }: ChatAppProps) {
         });
         if (res.ok) {
           const data = await res.json();
-          socketRef.current?.emit("message:send", {
+          await dispatchMessage({
             conversationId: activeConvId,
             type: "audio",
             mediaUrl: data.url,
@@ -584,9 +632,26 @@ export function ChatApp({ currentUser }: ChatAppProps) {
     recorder.stop();
   }
 
-  function toggleReaction(messageId: string, emoji: string) {
-    socketRef.current?.emit("message:react", { messageId, emoji });
+  async function toggleReaction(messageId: string, emoji: string) {
     setActiveReactionMsgId(null);
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("message:react", { messageId, emoji });
+      return;
+    }
+    const res = await fetch(`/api/messages/${messageId}/react`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emoji }),
+    });
+    if (res.ok && activeConvId) {
+      const data = await res.json();
+      setMessagesByConv((prev) => ({
+        ...prev,
+        [activeConvId]: (prev[activeConvId] || []).map((m) =>
+          m._id === messageId ? { ...m, reactions: data.reactions } : m
+        ),
+      }));
+    }
   }
 
   async function handleSignOut() {

@@ -6,7 +6,8 @@ import { getMongoDb } from "./db";
 export const auth = betterAuth({
   database: mongodbAdapter(getMongoDb()),
   secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: process.env.BETTER_AUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
+  trustedOrigins: ["http://localhost:3000", "https://*.vercel.app"],
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 6,
